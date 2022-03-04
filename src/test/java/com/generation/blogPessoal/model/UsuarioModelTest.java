@@ -27,7 +27,7 @@ public Usuario usuario;
 	
 	@BeforeEach
 	public void start() {
-		usuario = new Usuario(0L, "GlauTech", "Glaucya@email.com", "123456789");
+		usuario = new Usuario(0L, "GlauTech", "Glaucya@email.com", "123456789", null);
 	}
 
 	@Test

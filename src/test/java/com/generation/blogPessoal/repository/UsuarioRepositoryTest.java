@@ -26,10 +26,10 @@ public class UsuarioRepositoryTest {
 	
 	@BeforeAll
 	void start() {
-		usuarioRepository.save(new Usuario(0L, "Glaucya Nascimento", "glaucya@email.com", "13465278"));
-		usuarioRepository.save(new Usuario(0L, "Carlos Nascimento", "carlos@email.com", "13465278"));
-		usuarioRepository.save(new Usuario(0L, "Cauan Nascimento", "cauan@email.com", "13465278" ));
-		usuarioRepository.save(new Usuario(0L, "gleicy", "gleicy@email.com", "13465278"));
+		usuarioRepository.save(new Usuario(0L, "Glaucya Nascimento", "glaucya@email.com", "13465278", null));
+		usuarioRepository.save(new Usuario(0L, "Carlos Nascimento", "carlos@email.com", "13465278", null));
+		usuarioRepository.save(new Usuario(0L, "Cauan Nascimento", "cauan@email.com", "13465278", null ));
+		usuarioRepository.save(new Usuario(0L, "Gleicy", "gleicy@email.com", "13465278", null));
 		
 	}
 	@Test

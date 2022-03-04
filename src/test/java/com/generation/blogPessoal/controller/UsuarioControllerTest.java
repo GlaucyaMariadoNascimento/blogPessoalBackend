@@ -1,89 +1,76 @@
 package com.generation.blogPessoal.controller;
 
 
-import static org.junit.Assert.assertEquals;
+import java.util.List;
+import java.util.Optional;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.generation.blogPessoal.model.Usuario;
+import com.generation.blogPessoal.model.UserLogin;
+import com.generation.blogPessoal.repository.UsuarioRepository;
 import com.generation.blogPessoal.service.UsuarioService;
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@RestController
+@RequestMapping("/usuarios")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UsuarioControllerTest {
 
-	@Autowired private TestRestTemplate testRestTemplate;
-	@Autowired private UsuarioService usuarioService;
+	@Autowired
+	private UsuarioService usuarioService;
 	
+	@Autowired
+	private UsuarioRepository usuarioRepository;
 	
-	@Test
-	@Order(1)
-	@DisplayName("Cadastrar Um Usuario")
-	public void deveCriarUmUsuario(){
+	@GetMapping("/all")
+	public ResponseEntity <List<Usuario>> getAll(){
 		
-		HttpEntity<Usuario> requisicao = new HttpEntity<Usuario>(new Usuario(0L,
-				"Henrique Savioli", "hsavioli@email.com", "13465278"));
-		ResponseEntity<Usuario> resposta = testRestTemplate
-				.exchange( "/usuarios/cadastrar",HttpMethod.POST, requisicao, Usuario.class);
+		return ResponseEntity.ok(usuarioRepository.findAll());
 		
-		assertEquals(HttpStatus.CREATED, resposta.getStatusCode());
-		assertEquals(requisicao.getBody().getNome(), resposta.getBody().getNome());
-		assertEquals(requisicao.getBody().getUsuario(), resposta.getBody().getUsuario());
 	}
 
-	@Test
-	@Order(2)
-	@DisplayName("Não Deve permitir duplicação de usuario")
-	public void naoDeveDuplicarUsuario(){
-		
-		usuarioService.CadastrarUsuario(new Usuario(0L,
-				"Maria Savioli", "mariasavioli@email.com", "13465278"));
-		
-		HttpEntity<Usuario> requisicao =new HttpEntity<Usuario>(new Usuario(0L,
-				"Maria Savioli", "mariasavioli@email.com", "13465278"));
-		
-		ResponseEntity<Usuario> resposta = testRestTemplate
-				.exchange("/usuarios/cadastrar", HttpMethod.POST, requisicao, Usuario.class);
-		
-		assertEquals(HttpStatus.UNAUTHORIZED, resposta.getStatusCode());
+	@GetMapping("/{id}")
+	public ResponseEntity<Usuario> getById(@PathVariable long id) {
+		return usuarioRepository.findById(id).map(resp -> ResponseEntity.ok(resp))
+		.orElse(ResponseEntity.notFound().build());
 	}
 	
-	@Disabled
-	@Test
-	@Order(4)
-	@DisplayName("Listar todos os Usuarios")
-	public void deveMosrarTodosUsuarios(){
-		usuarioService.CadastrarUsuario(new Usuario(0L, 
-				"Pedro Sampaio", "pedro2022@email.com.br", "13465278"));
-			
-			usuarioService.CadastrarUsuario(new Usuario(0L, 
-				"Pedro da Silva Sampaio", "pedro2022@email.com.br", "13465278"));
-
-			ResponseEntity<String> resposta = testRestTemplate
-				.withBasicAuth("root", "root")
-				.exchange("/usuarios/listar", HttpMethod.GET, null, String.class);
-
-			assertEquals(HttpStatus.OK, resposta.getStatusCode());
+	@PostMapping("/logar")
+	public ResponseEntity<UserLogin> loginUsuario(@RequestBody Optional <UserLogin> usuarioLogin){
+		
+		return usuarioService.autenticarUsuario(usuarioLogin)
+			.map(resp -> ResponseEntity.status(HttpStatus.OK).body(resp))
+			.orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
 	}
 	
+	@PostMapping("/cadastrar")
+	public ResponseEntity<Usuario> postUsuario(@Valid @RequestBody Usuario usuario){
+		
+		return usuarioService.cadastrarUsuario(usuario)
+			.map(resposta -> ResponseEntity.status(HttpStatus.CREATED).body(resposta))
+			.orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+	}
+	
+	@PutMapping("/atualizar")
+	public ResponseEntity<Usuario> putUsuario(@Valid @RequestBody Usuario usuario){		
+		return usuarioService.atualizarUsuario(usuario)
+			.map(resposta -> ResponseEntity.status(HttpStatus.OK).body(resposta))
+			.orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+	}
+
 }
-
-
 
 	
 
